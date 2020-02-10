@@ -1,0 +1,16 @@
+# cmd conda build .
+package:
+    name: varecof
+    version: "1.0.0"
+
+source:
+    path: .
+
+requirements:
+    build:
+        - cmake
+        - lapack  
+    run:
+        - cmake
+        - lapack  
+
