@@ -1,7 +1,7 @@
 #!/bin/sh
 
 
-ROOT="/tcghome/ygeorgi/fock"
+ROOT=""
 LD_LIBRARY_PATH="$ROOT/gcc/lib64:$ROOT/lib64"
 PATH="/bin"
 export LD_LIBRARY_PATH PATH
