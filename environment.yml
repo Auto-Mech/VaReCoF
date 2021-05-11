@@ -1,14 +1,13 @@
 name: varecof-env
 
 channels:
-    - pacchem
+    - auto-mech
 
 dependencies:
     - cmake
     - gcc_linux-64
     - gxx_linux-64
-    - mpi
     - blas
     - openblas # [linux]
-    - slatec
-    - dl
+    - mpi
+    - auto-mech::slatec

@@ -1,7 +1,7 @@
 # cmd conda build . -c auto-mech
 package:
     name: varecof
-    version: "1.0.0"
+    version: "0.1.0"
 
 source:
     path: .
@@ -9,15 +9,19 @@ source:
 requirements:
     build:
         - cmake
+        - gcc_linux-64
+        - gxx_linux-64
         - blas
         - openblas # [linux]
-        - slatec
         - mpi
-        - dl
+        # - dl
+        - auto-mech::slatec
     run:
         - cmake
+        - gcc_linux-64
+        - gxx_linux-64
         - blas
         - openblas # [linux]
-        - slatec
         - mpi
-        - dl
+        # - dl
+        - auto-mech::slatec
