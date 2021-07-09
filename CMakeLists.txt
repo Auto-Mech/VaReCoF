@@ -11,15 +11,15 @@ find_package(MPI REQUIRED)
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
 find_library(SLATEC REQUIRED NAMES slatec libslatec)
-find_library(DL libdl.so PATHS /usr/lib64)
+# find_library(DL libdl.so PATHS /usr/lib64)
         
 message(STATUS "Found MPI: ${MPI_LIBRARIES}")
 message(STATUS "Found BLAS: ${BLAS_LIBRARIES}")
 message(STATUS "Found LAPACK: ${LAPACK_LIBRARIES}")
 message(STATUS "Found SLATEC: ${SLATEC}")
-message(STATUS "Found DL: ${DL}")
+# message(STATUS "Found DL: ${DL}")
 
-include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+include_directories(${MPI_INCLUDE_PATH})
 
 add_library(varecoflibs
     ${PROJECT_SOURCE_DIR}/src/interflux.cc

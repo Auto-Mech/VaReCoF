@@ -1,7 +1,7 @@
 name: varecof-env
 
 channels:
-    - conda-forge
+    # - conda-forge
     - auto-mech
 
 dependencies:
@@ -10,5 +10,6 @@ dependencies:
     - gxx_linux-64
     - blas
     - openblas # [linux]
-    - conda-forge::mpich
+    - mpich
+    # - conda-forge::mpich doesn't give executables for some reason
     - auto-mech::slatec
