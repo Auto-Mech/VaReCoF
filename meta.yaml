@@ -8,20 +8,20 @@ source:
 
 requirements:
     build:
+        - auto-mech::slatec
         - conda-forge::cmake=3.21.3
-        - conda-forge::gcc_linux-64=11.2.0
-        - conda-forge::gxx_linux-64=11.2.0
+        - conda-forge::gcc_linux-64=7.5.0
+        - conda-forge::gxx_linux-64=7.5.0
         - conda-forge::blas
         - conda-forge::openblas # [linux]
         - conda-forge::mpich
         # - conda-forge::mpich doesn't give executables for some reason
-        - auto-mech::slatec
     run:
+        - auto-mech::slatec
         - conda-forge::cmake=3.21.3
-        - conda-forge::gcc_linux-64=11.2.0
-        - conda-forge::gxx_linux-64=11.2.0
+        - conda-forge::gcc_linux-64=7.5.0
+        - conda-forge::gxx_linux-64=7.5.0
         - conda-forge::blas
         - conda-forge::openblas # [linux]
         - conda-forge::mpich
         # - conda-forge::mpich doesn't give executables for some reason
-        - auto-mech::slatec
