@@ -1,0 +1,28 @@
+version: 2
+jobs:
+    build-and-test:
+        docker:
+            - image: continuumio/miniconda3
+        steps:
+          - checkout
+          - run:
+              name: Create conda environment
+              command: |
+                  apt-get update --yes
+                  apt-get install --yes build-essential
+                  conda env create -f environment.yml
+          - run:
+              name: Build the code
+              command: |
+                  source activate varecof-env
+                  bash build.sh
+          - run:
+              name: Test the code
+              command: |
+                  source activate varecof-env
+                  cd examples/
+workflows:
+    version: 2
+    build-all:
+        jobs:
+            - build-and-test

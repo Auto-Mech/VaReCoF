@@ -1,0 +1,281 @@
+#include "sjk.hh"
+#include "tmatrix.hh"
+#include "pes.hh"
+
+#include <fstream>
+#include <dlfcn.h>
+#include <cstdlib>
+#include <vector>
+#include <sstream>
+
+namespace Sjk {
+
+  extern "C" {
+    typedef double (*ener_t) (const double* r, const int& flag, int& status);
+    typedef void   (*init_t) (const char*);
+  }
+
+  ener_t  _pot_ener = 0;
+  ener_t _corr_ener = 0;
+
+  bool       _init = false;
+
+  std::vector<int>  _pot_flag;
+  std::vector<int> _corr_flag;
+
+  const char pot_libr_key [] = "Library";
+  const char pot_ener_key [] = "EnergyMethod";
+  const char pot_init_key [] = "InitMethod";
+  const char pot_data_key [] = "InitData";
+  const char pot_flag_key [] = "Flag";
+
+  const char corr_libr_key [] = "CorrectionLibrary";
+  const char corr_ener_key [] = "CorrectionEnergyMethod";
+  const char corr_init_key [] = "CorrectionInitMethod";
+  const char corr_data_key [] = "CorrectionInitData";
+  const char corr_flag_key [] = "CorrectionFlag";
+
+  const char* all_keys [] = {
+    pot_libr_key,
+    pot_ener_key,
+    pot_init_key,
+    pot_data_key,
+    pot_flag_key,
+    corr_libr_key,
+    corr_ener_key,
+    corr_init_key,
+    corr_data_key,
+    corr_flag_key,
+    0
+  };
+}
+
+int Sjk::pot (const Array_2<double>& r, Array<double>& ener) 
+{ 
+  const char funame [] = "Sjk::pot: ";
+
+  int itemp;
+
+  int status = 0;
+  for(int pes = 0; pes < ener.size(); ++pes) {
+    ener[pes] = _pot_ener(r.data(), _pot_flag[pes], status);
+    if(status)
+      return status;
+  }
+
+  if(_corr_ener)
+    for(int pes = 0; pes < ener.size(); ++pes) {
+      ener[pes] += _corr_ener(r.data(), _corr_flag[pes], status);
+      if(status)
+	return status;
+    }
+  
+  return 0;
+}
+
+bool Sjk::isinit () { return _init; }
+
+void Sjk::init(const string& fname) throw(Err)
+{
+  const char funame [] = "Sjk::init: ";
+
+  if(_init) {
+    cerr << funame << "sjk environment is allready initialized\n";
+    throw Init_Err();
+  }
+  _init = true;
+
+  int    itemp;
+  double dtemp;
+  string stemp;
+
+  string token, line;
+
+  ifstream from(fname.c_str());
+  if(!from) {
+    cerr << funame << "cannot open input file " << fname << "\n";
+    throw Open_Err();
+  }
+
+  string  pot_libr_name,  pot_ener_name,  pot_init_name,  pot_data_name;
+  string corr_libr_name, corr_ener_name, corr_init_name, corr_data_name;
+
+  while(from >> token) {
+    // potential dynamical library
+    if(token == pot_libr_key) {
+      if(!(from >> pot_libr_name)) {
+	cerr << funame << "cannot read " << token << "\n";
+	throw Form_Err();
+      }
+    }
+    // potential energy method symbol
+    else if(token == pot_ener_key) {
+      if(!(from >> pot_ener_name)) {
+	cerr << funame << "cannot read " << token << "\n";
+	throw Form_Err();
+      }
+    }
+    // potential initialization method symbol
+    else if(token == pot_init_key) {
+      if(!(from >> pot_init_name)) {
+	cerr << funame << "cannot read " << token << "\n";
+	throw Form_Err();
+      }
+    }
+    // potential initialization data file
+    else if(token == pot_data_key) {
+      if(!(from >> pot_data_name)) {
+	cerr << funame << "cannot read " << token << "\n";
+	throw Form_Err();
+      }
+    }
+    // potential energy flag
+    else if(token == pot_flag_key) {
+
+      if(_pot_flag.size()){
+	cerr << funame << token << ": already defined\n";
+	throw Form_Err();
+      }
+
+      std::getline(from, line);
+      std::istringstream iss(line);
+      while(iss >> itemp)
+	_pot_flag.push_back(itemp);
+
+      if(!_pot_flag.size()) {
+	std::cerr << funame << token << ": no data found\n";
+	throw Form_Err();
+      }
+    }
+    // correction dynamical library
+    else if(token == corr_libr_key) {
+      if(!(from >> corr_libr_name)) {
+	cerr << funame << "cannot read " << token << "\n";
+	throw Form_Err();
+      }
+    }
+    // correction energy method symbol
+    else if(token == corr_ener_key) {
+      if(!(from >> corr_ener_name)) {
+	cerr << funame << "cannot read " << token << "\n";
+	throw Form_Err();
+      }
+    }
+    // correction initialization method symbol
+    else if(token == corr_init_key) {
+      if(!(from >> corr_init_name)) {
+	cerr << funame << "cannot read " << token << "\n";
+	throw Form_Err();
+      }
+    }
+    // correction initialization data file
+    else if(token == corr_data_key) {
+      if(!(from >> corr_data_name)) {
+	cerr << funame << "cannot read " << token << "\n";
+	throw Form_Err();
+      }
+    }
+    // correction energy flag
+    else if(token == corr_flag_key) {
+
+      if(_corr_flag.size()){
+	cerr << funame << token << ": already defined\n";
+	throw Form_Err();
+      }
+
+      std::getline(from, line);
+      std::istringstream iss(line);
+      while(iss >> itemp)
+	_corr_flag.push_back(itemp);
+
+      if(!_corr_flag.size()) {
+	std::cerr << funame << token << ": no data found\n";
+	throw Form_Err();
+      }
+    }
+    else {
+      cerr << funame << "unknown key: " << token
+	   << "\n\navailable keys:\n";
+      for(int i = 0; all_keys[i] != 0; ++i)
+	cerr << all_keys[i] << "\n";
+      throw Form_Err();
+    }
+  }
+  from.close();
+
+  if(!pot_libr_name.size()) {
+    cerr << funame << pot_libr_key << " not defined\n";
+    throw Find_Err();
+  }
+
+  if(!pot_ener_name.size()) {
+    cerr << funame << pot_ener_key << " not defined\n";
+    throw Find_Err();
+  }
+
+  if(corr_libr_name.size() && !corr_ener_name.size()) {
+    cerr << funame << corr_ener_key << " not defined\n";
+    throw Find_Err();
+  }
+
+  // open dynamical lybrary
+  const char* messg = 0;
+  void* handle = dlopen(pot_libr_name.c_str(), RTLD_NOW);
+  if(messg = dlerror()) {
+    cerr << funame << messg << "\n";
+    throw Run_Err();
+  }
+
+  _pot_ener = (ener_t)dlsym(handle, pot_ener_name.c_str());
+  if(messg = dlerror()) {
+    cerr << funame << messg << "\n";
+    throw Run_Err();
+  }
+
+  if(pot_init_name.size()) {
+    init_t pot_init = (init_t)dlsym(handle, pot_init_name.c_str());
+    if(messg = dlerror()) {
+      cerr << funame << messg << "\n";
+      throw Run_Err();
+    }
+
+    pot_init(pot_data_name.c_str());
+  }
+
+  // correction energy method
+  if(corr_libr_name.size()) {
+
+    handle = dlopen(corr_libr_name.c_str(), RTLD_NOW);
+    if(messg = dlerror()) {
+      cerr << funame << messg << "\n";
+      throw Run_Err();
+    }
+
+    _corr_ener = (ener_t)dlsym(handle, corr_ener_name.c_str());
+    if(messg = dlerror()) {
+      cerr << funame << messg << "\n";
+      throw Run_Err();
+    }
+
+    if(corr_init_name.size()) {
+      init_t corr_init = (init_t)dlsym(handle, corr_init_name.c_str());
+      if(messg = dlerror()) {
+	cerr << funame << messg << "\n";
+	throw Run_Err();
+      }
+
+      corr_init(corr_data_name.c_str());
+    }
+  }
+
+  if(!_pot_flag.size())
+    _pot_flag.resize(1);
+  
+  if(_corr_ener && !_corr_flag.size())
+    _corr_flag.resize(1);
+
+  if(_pot_flag.size() != PES::size() || _corr_ener && _corr_flag.size() != PES::size()) {
+    std::cerr << funame << "wrong pes size\n";
+    throw Init_Err();
+  }
+}

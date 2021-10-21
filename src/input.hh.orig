@@ -1,0 +1,75 @@
+#ifndef ROTD_INPUT_HH
+#define ROTD_INPUT_HH
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <set>
+
+#include "error.hh"
+
+class Read
+{
+  enum State {NOVAL, DEFAULT, READ};// reading status
+
+  void* _data;
+  void (Read::* _read) (istream&) throw(Error::Err);
+  State _state;
+
+  void INT      (istream&) throw(Error::Err);
+  void DOUBLE   (istream&) throw(Error::Err);
+  void STRING   (istream&) throw(Error::Err);
+  void DARR     (istream&) throw(Error::Err);
+  void IARR     (istream&) throw(Error::Err);
+
+public:
+  
+  Read () : _data(0), _read(0), _state(NOVAL) {}
+
+  explicit Read(int& i) 
+    : _data(&i), _read(&Read::INT), _state(NOVAL) {} 
+  Read(int& i, int d) 
+    : _data(&i), _read(&Read::INT), _state(DEFAULT) { i = d; } 
+  explicit Read(double& i) 
+    : _data(&i), _read(&Read::DOUBLE), _state(NOVAL) {} 
+  Read(double& i, double d) 
+    : _data(&i), _read(&Read::DOUBLE), _state(DEFAULT) { i = d; } 
+  explicit Read(std::string& i) 
+    : _data(&i), _read(&Read::STRING),  _state(NOVAL) {} 
+  Read(std::string& i, const std::string& d) 
+    : _data(&i), _read(&Read::STRING),  _state(DEFAULT) { i = d; } 
+  explicit Read(std::vector<double>& i) 
+    : _data(&i), _read(&Read::DARR),    _state(NOVAL) {} 
+   Read(std::vector<double>& i, const std::vector<double>& d) 
+    : _data(&i), _read(&Read::DARR),    _state(DEFAULT) { i = d; } 
+  explicit Read(std::vector<int>& i) 
+    : _data(&i), _read(&Read::IARR),    _state(NOVAL) {} 
+   Read(std::vector<int>& i, const std::vector<int>& d) 
+    : _data(&i), _read(&Read::IARR),    _state(DEFAULT) { i = d; } 
+
+
+  friend istream& operator>> (istream&, Read&) throw(Error::Err);
+
+  bool is_read () const;
+  bool is_init () const;
+  bool is_default () const;
+
+  friend ostream& operator<<(ostream&, const Read&) throw(Error::Err);
+};
+
+istream& operator>> (istream&, Read&) throw(Error::Err);
+ostream& operator<< (ostream&, const Read&) throw(Error::Err);
+
+class InputKey : public std::string {
+
+  static std::set<const std::string*> pool;
+
+public:
+  InputKey () { pool.insert(this); }
+  InputKey (const std::string& s) : std::string(s) { pool.insert(this); }
+  InputKey (const char* s) : std::string(s) { pool.insert(this); }
+  ~InputKey () {pool.erase(this); }
+  static void show_all ();
+};
+
+#endif
