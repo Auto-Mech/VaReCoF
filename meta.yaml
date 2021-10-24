@@ -1,7 +1,7 @@
 # cmd conda build . -c auto-mech -c conda-forge
 package:
     name: varecof
-    version: "0.2.0"
+    version: "0.3.0"
 
 source:
     path: .
@@ -9,7 +9,7 @@ source:
 requirements:
     build:
         - auto-mech::slatec
-        - conda-forge::cmake=3.21.3
+        - conda-forge::cmake=3.20.2
         - conda-forge::gcc_linux-64=7.5.0
         - conda-forge::gxx_linux-64=7.5.0
         - conda-forge::blas
@@ -18,7 +18,7 @@ requirements:
         # - conda-forge::mpich doesn't give executables for some reason
     run:
         - auto-mech::slatec
-        - conda-forge::cmake=3.21.3
+        - conda-forge::cmake=3.20.2
         - conda-forge::gcc_linux-64=7.5.0
         - conda-forge::gxx_linux-64=7.5.0
         - conda-forge::blas
