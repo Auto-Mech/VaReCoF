@@ -6,7 +6,7 @@ channels:
 
 dependencies:
     - auto-mech::slatec
-    - conda-forge::cmake=3.21.3
+    - conda-forge::cmake=3.20.2
     - conda-forge::gcc_linux-64=7.5.0
     - conda-forge::gxx_linux-64=7.5.0
     - conda-forge::blas
